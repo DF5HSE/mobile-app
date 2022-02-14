@@ -8,6 +8,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name="org.hyperskill.app.android.CalculatorActivity"
+            android:windowSoftInputMode="stateAlwaysHidden"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

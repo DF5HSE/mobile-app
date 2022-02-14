@@ -34,6 +34,21 @@ class ExpressionImpl() : Expression {
         return cursorPosition
     }
 
+    override fun setCursorPosition(newPosition: Int): Boolean {
+        val newPos: Int
+        if (newPosition < 0)
+            newPos = 0
+        else if (newPosition > inputTokens.size)
+            newPos = inputTokens.size
+        else
+            newPos = newPosition
+        if (cursorPosition == newPos)
+            return false
+
+        cursorPosition = newPos
+        return true
+    }
+
     override fun addToken(inputToken: InputToken) {
         inputTokens.add(cursorPosition, inputToken)
         require(cursorPosition < inputTokens.size)
@@ -58,6 +73,8 @@ class ExpressionImpl() : Expression {
         }
         return false
     }
+
+    override fun isEmpty() = inputTokens.isEmpty()
 
     override fun toString(): String {
         return inputTokens.joinToString(separator = "") { it.toString() }

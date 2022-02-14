@@ -1,18 +1,22 @@
 package org.hyperskill.app.android
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import org.hyperskill.app.calculator.*
 import org.hyperskill.app.calculator.impl.ExpressionImpl
 
+
 class CalculatorActivity : AppCompatActivity() {
     private var curExpression = ExpressionImpl()
 
-    private val buttonsClickExpressionChange = mapOf(
-        R.id.buttonDot to { curExpression.addToken(Dot) },
+    private val buttonsDigitsClickReactions = mapOf(
         R.id.button0 to { curExpression.addToken(Digit.ZERO) },
         R.id.button1 to { curExpression.addToken(Digit.ONE) },
         R.id.button2 to { curExpression.addToken(Digit.TWO) },
@@ -23,18 +27,21 @@ class CalculatorActivity : AppCompatActivity() {
         R.id.button7 to { curExpression.addToken(Digit.SEVEN) },
         R.id.button8 to { curExpression.addToken(Digit.EIGHT) },
         R.id.button9 to { curExpression.addToken(Digit.NINE) },
+    )
 
+    private val buttonsNotDigitTokensClickReactions = mapOf(
+        R.id.buttonDot to { curExpression.addToken(Dot) },
         R.id.buttonMinus to { curExpression.addToken(Operator.MINUS) },
         R.id.buttonPlus to { curExpression.addToken(Operator.PLUS) },
         R.id.buttonDivision to { curExpression.addToken(Operator.DIVISION_CHAR) },
         R.id.buttonMultiply to { curExpression.addToken(Operator.MULTIPLY_CHAR) },
         R.id.buttonPow to { curExpression.addToken(Operator.POW_CHAR) },
 
-        R.id.buttonClear to { curExpression.clear() },
-        R.id.buttonDelete to { curExpression.deleteToken() },
-
         R.id.buttonLeftBrace to { curExpression.addToken(Brace.LEFT) },
-        R.id.buttonRightBrace to { curExpression.addToken(Brace.LEFT) },
+        R.id.buttonRightBrace to { curExpression.addToken(Brace.RIGHT) },
+    )
+
+    private val buttonsMoveCursorClickReactions = mapOf(
         R.id.buttonLeftArrow to { curExpression.shiftCursorLeft() },
         R.id.buttonRightArrow to { curExpression.shiftCursorRight() },
     )
@@ -49,33 +56,112 @@ class CalculatorActivity : AppCompatActivity() {
         R.id.buttonPow to Operator.POW_CHAR,
     )
 
+    private lateinit var resultsScrollView: ScrollView
     private lateinit var resultView: TextView
     private lateinit var currentExpressionEditor: EditText
+    private lateinit var expressionsHistoryView: TextView
+
+    private fun calculateAndDisplayResult() {
+        currentExpressionEditor.setText(curExpression.toString())
+        val res = curExpression.calculate()
+        if (res == null)
+            resultView.text = ""
+        else
+            resultView.text = res.toString()
+        currentExpressionEditor.setSelection(curExpression.getCursorPosition())
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_calculator)
 
-        resultView = findViewById<Button>(R.id.ResultView)
-        buttonsClickExpressionChange.forEach {
-            findViewById<Button>(it.key).setOnClickListener{v ->
-                it.value()
-                val res = curExpression.calculate()
-                if (res == null)
-                    resultView.clearComposingText()
-                else
-                    resultView.text = res.toString()
+        resultView = findViewById(R.id.ResultView)
+        currentExpressionEditor = findViewById(R.id.currentExpressionEditor)
+        resultsScrollView = findViewById(R.id.resultsScrollView)
+        expressionsHistoryView = findViewById(R.id.expressionsHistory)
+
+        // disable keyword
+        currentExpressionEditor.showSoftInputOnFocus = false
+
+        // Setting scroll view down when expression or it's result is changing
+        val textWatcher = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                resultsScrollView.post { resultsScrollView.fullScroll(ScrollView.FOCUS_DOWN); }
+            }
+
+            override fun afterTextChanged(editable: Editable?) {
             }
         }
-//        findViewById<Button>(R.id.buttonClear).setOnClickListener{
-//            if ()
-//        }
-        buttonsToken.forEach{
+        currentExpressionEditor.addTextChangedListener(textWatcher)
+        resultView.addTextChangedListener(textWatcher)
+
+
+        // Setting text on some buttons
+        buttonsToken.forEach {
             findViewById<Button>(it.key).text = it.value.toString()
         }
 
-        /* TODO connect R.id.Result, R.id.ActualExpression and R.id.ExpressionsHistory
-         * TODO with CalculateCore, for updating them after changes in core state
-         */
+        // Setting click listeners for digit buttons
+        buttonsDigitsClickReactions.forEach {
+            findViewById<Button>(it.key).setOnClickListener { v ->
+                it.value()
+                calculateAndDisplayResult()
+            }
+        }
+        // Setting click listeners for button, which are adding tokens
+        buttonsNotDigitTokensClickReactions.forEach {
+            findViewById<Button>(it.key).setOnClickListener { v ->
+                if (curExpression.isEmpty())
+                    curExpression.addToken(Digit.ZERO);
+                it.value()
+                calculateAndDisplayResult()
+            }
+        }
+
+        // Setting click listeners for moving cursor buttons
+        buttonsMoveCursorClickReactions.forEach {
+            findViewById<Button>(it.key).setOnClickListener { v ->
+                if (it.value()) {
+                    calculateAndDisplayResult()
+                }
+            }
+        }
+
+        // setting click listener for clear expression button
+        findViewById<Button>(R.id.buttonClear).setOnClickListener { v ->
+            if (curExpression.clear()) {
+                currentExpressionEditor.setText("0")
+                resultView.text = "0.0"
+                currentExpressionEditor.setSelection(1)
+            }
+        }
+
+        // Setting click listener for delete token button
+        findViewById<Button>(R.id.buttonDelete).setOnClickListener { v ->
+            if (curExpression.deleteToken()) {
+                calculateAndDisplayResult()
+                if (curExpression.isEmpty())
+                    currentExpressionEditor.setText("0")
+            }
+        }
+
+        // Setting click listener for equality button
+        findViewById<Button>(R.id.buttonEquality).setOnClickListener { v ->
+            val res = curExpression.calculate()
+            if (res == null)
+                resultView.text = resources.getString(R.string.ErrorMsg)
+            else {
+                resultView.text = res.toString()
+                expressionsHistoryView.append("${curExpression.toString()}=${res.toString()}\n")
+            }
+        }
+
+        // Setting default expression view
+        currentExpressionEditor.setText("0")
+        resultView.text = "0.0"
+        currentExpressionEditor.setSelection(1)
     }
 }

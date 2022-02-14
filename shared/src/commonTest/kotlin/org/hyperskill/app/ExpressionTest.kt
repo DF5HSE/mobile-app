@@ -45,6 +45,24 @@ internal abstract class ExpressionTest {
     }
 
     @Test
+    fun testSetCursorPosition() {
+        val expr: Expression = createExpressionFromString(bigExpressionString)
+        assertEquals(bigExpressionString.length, expr.getCursorPosition())
+
+
+        assertTrue(expr.setCursorPosition(-1))
+        assertEquals(0, expr.getCursorPosition())
+
+        for (i in 1..bigExpressionString.length) {
+            assertTrue(expr.setCursorPosition(i))
+            assertEquals(i, expr.getCursorPosition())
+        }
+
+        assertFalse(expr.setCursorPosition(bigExpressionString.length + 1))
+        assertEquals(bigExpressionString.length, expr.getCursorPosition())
+    }
+
+    @Test
     fun testAddElementInDifferentPlaces() {
         val expr: Expression = createExpressionFromString("20")
         expr.addToken(Digit.NINE)
