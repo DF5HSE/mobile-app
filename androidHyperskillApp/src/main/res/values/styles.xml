@@ -7,17 +7,17 @@
 
 
     <style name="CalculateResult">
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="currentExpression">
         <item name="android:textSize">50sp</item>
         <item name="android:textColor">@android:color/black</item>
     </style>
 
-    <style name="ActualExpression">
-        <item name="android:textSize">40sp</item>
-        <item name="android:textColor">@android:color/black</item>
-    </style>
-
     <style name="ExpressionsHistory">
-        <item name="android:textSize">30sp</item>
+        <item name="android:textSize">20sp</item>
     </style>
 
     <style name="CalculatorDigitButton">

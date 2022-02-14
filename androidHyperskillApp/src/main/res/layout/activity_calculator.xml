@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/calculatorView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:weightSum="2">
 
     <ScrollView
+        android:id="@+id/resultsScrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.75">
+        android:layout_gravity="bottom"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -23,16 +26,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end|bottom"
-                android:text="TODO history\ndfd\n\dfdn\nf\n\n\n" />
+                android:text="" />
 
             <EditText
-                android:id="@+id/actualExpression"
-                style="@style/ActualExpression"
+                android:id="@+id/currentExpressionEditor"
+                style="@style/currentExpression"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="end|bottom"
                 android:inputType="none"
-                android:text="1+2" />
+                android:textIsSelectable="false"
+                android:text="0" />
 
             <TextView
                 android:id="@+id/ResultView"
@@ -47,7 +51,7 @@
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1.25"
+        android:layout_weight="1"
         android:columnCount="4"
         android:rowCount="6">
 
